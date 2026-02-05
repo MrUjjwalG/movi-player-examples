@@ -18,7 +18,12 @@
       ]
     }
   ],
+
   "rewrites": [
+    {
+      "source": "/:path*\\.(html|js|css|png|jpg|jpeg|svg|webp|ico|wasm|json)",
+      "destination": "/:path*"
+    },
     {
       "source": "/(.*)",
       "destination": "/index.html"
