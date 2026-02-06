@@ -154,6 +154,9 @@
           id="urlInput"
           value="https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
         />
+        <label style="margin-left: 10px">or</label>
+        <input type="file" id="fileInput" accept="video/*" style="display: none;" />
+        <button id="fileBtn" style="background: #28a745;">Choose File</button>
         <label style="margin-left: 10px">Screenshots:</label>
         <!-- Default 8 to make a nice 2x4 grid -->
         <input
@@ -200,12 +203,16 @@
       import {
         Demuxer,
         HttpSource,
+        FileSource,
         ThumbnailHttpSource,
+        ThumbnailFileSource,
         ThumbnailBindings,
         loadWasmModuleNew,
       } from "movi-player/demuxer";
 
       const urlInput = document.getElementById("urlInput");
+      const fileInput = document.getElementById("fileInput");
+      const fileBtn = document.getElementById("fileBtn");
       const countInput = document.getElementById("countInput");
       const analyzeBtn = document.getElementById("analyzeBtn");
       const statusEl = document.getElementById("status");
@@ -220,11 +227,36 @@
       const displayMeta = document.getElementById("displayMeta");
       const screenshotGrid = document.getElementById("screenshotGrid");
 
+      let selectedFile = null;
+
+      // File button click handler
+      fileBtn.addEventListener("click", () => fileInput.click());
+
+      // File input change handler
+      fileInput.addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          selectedFile = file;
+          urlInput.value = `[Local File: ${file.name}]`;
+          urlInput.disabled = true;
+        }
+      });
+
+      // Allow clearing file selection
+      urlInput.addEventListener("focus", () => {
+        if (selectedFile) {
+          selectedFile = null;
+          fileInput.value = "";
+          urlInput.value = "";
+          urlInput.disabled = false;
+        }
+      });
+
       analyzeBtn.addEventListener("click", async () => {
         const url = urlInput.value;
         const count = parseInt(countInput.value) || 8;
 
-        if (!url) return;
+        if (!url && !selectedFile) return;
 
         // Reset UI
         resultContainer.style.display = "none";
@@ -240,11 +272,25 @@
         try {
           // 1. Get Metadata
           updateStatus("Reading metadata...");
-          const source = new HttpSource(url);
-          demuxer = new Demuxer(source);
-          const info = await demuxer.open();
 
-          const size = await source.getSize();
+          // Choose source based on input type
+          let source, thumbSource, size, filename;
+
+          if (selectedFile) {
+            // Local file
+            source = new FileSource(selectedFile);
+            demuxer = new Demuxer(source);
+            size = selectedFile.size;
+            filename = selectedFile.name;
+          } else {
+            // URL
+            source = new HttpSource(url);
+            demuxer = new Demuxer(source);
+            size = await source.getSize();
+            filename = url.split("?")[0].split("/").pop();
+          }
+
+          const info = await demuxer.open();
           const sizeMB = (size / (1024 * 1024)).toFixed(1) + "MB";
 
           const tracks = demuxer.getTracks();
@@ -255,10 +301,6 @@
           if (!videoTrack) throw new Error("No video track found");
 
           // --- Extract Data for Layout ---
-          // 1. Sanitize filename (remove query params like ?token=...)
-          const cleanUrl = url.split("?")[0];
-          const filename = cleanUrl.split("/").pop();
-
           // Point 1: Use metadata title if available, else filename
           let title = info.metadata?.title;
           if (!title) {
@@ -345,7 +387,14 @@
           updateStatus("Loading thumbnail generator...");
           const wasmModule = await loadWasmModuleNew();
           thumbBindings = new ThumbnailBindings(wasmModule);
-          const thumbSource = new ThumbnailHttpSource(url);
+
+          // Choose thumbnail source based on input type
+          if (selectedFile) {
+            thumbSource = new ThumbnailFileSource(selectedFile);
+          } else {
+            thumbSource = new ThumbnailHttpSource(url);
+          }
+
           thumbBindings.setDataSource(thumbSource);
           await thumbBindings.create(size);
 
