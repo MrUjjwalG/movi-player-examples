@@ -423,7 +423,7 @@
             if (pktSize > 0) {
               const rgba = thumbBindings.decodeCurrentPacket(width, height);
               if (rgba) {
-                addScreenshot(rgba, width, height);
+                addScreenshot(rgba, width, height, isHDR);
                 thumbBindings.clearBuffer();
               }
             }
@@ -443,7 +443,46 @@
         }
       });
 
-      function addScreenshot(rgbaData, w, h) {
+      // Tone mapping for HDR content
+      function applyToneMapping(rgbaData) {
+        const data = new Uint8ClampedArray(rgbaData);
+
+        // Reinhard tone mapping with exposure adjustment
+        const exposure = 1.2; // Slightly increase brightness
+        const whitePoint = 255;
+
+        for (let i = 0; i < data.length; i += 4) {
+          // Convert to normalized values
+          let r = data[i] / 255;
+          let g = data[i + 1] / 255;
+          let b = data[i + 2] / 255;
+
+          // Apply exposure
+          r *= exposure;
+          g *= exposure;
+          b *= exposure;
+
+          // Reinhard tone mapping: x / (1 + x)
+          r = r / (1 + r);
+          g = g / (1 + g);
+          b = b / (1 + b);
+
+          // Gamma correction (2.2 -> 1.0)
+          r = Math.pow(r, 1 / 2.2);
+          g = Math.pow(g, 1 / 2.2);
+          b = Math.pow(b, 1 / 2.2);
+
+          // Convert back to 0-255 range
+          data[i] = Math.min(255, Math.max(0, r * 255));
+          data[i + 1] = Math.min(255, Math.max(0, g * 255));
+          data[i + 2] = Math.min(255, Math.max(0, b * 255));
+          // Alpha channel remains unchanged (i + 3)
+        }
+
+        return data;
+      }
+
+      function addScreenshot(rgbaData, w, h, isHDR = false) {
         const item = document.createElement("div");
         item.className = "screenshot-item";
 
@@ -451,7 +490,11 @@
         canvas.width = w;
         canvas.height = h;
         const ctx = canvas.getContext("2d");
-        const imgData = new ImageData(new Uint8ClampedArray(rgbaData), w, h);
+
+        // Apply tone mapping for HDR content
+        const processedData = isHDR ? applyToneMapping(rgbaData) : new Uint8ClampedArray(rgbaData);
+
+        const imgData = new ImageData(processedData, w, h);
         ctx.putImageData(imgData, 0, 0);
 
         item.appendChild(canvas);
