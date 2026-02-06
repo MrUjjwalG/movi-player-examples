@@ -205,7 +205,6 @@
         HttpSource,
         FileSource,
         ThumbnailHttpSource,
-        ThumbnailFileSource,
         ThumbnailBindings,
         loadWasmModuleNew,
       } from "movi-player/demuxer";
@@ -390,7 +389,8 @@
 
           // Choose thumbnail source based on input type
           if (selectedFile) {
-            thumbSource = new ThumbnailFileSource(selectedFile);
+            // For files, use FileSource directly (implements DataSource interface)
+            thumbSource = new FileSource(selectedFile);
           } else {
             thumbSource = new ThumbnailHttpSource(url);
           }
