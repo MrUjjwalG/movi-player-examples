@@ -1,5 +1,19 @@
 <!doctype html>
 <html lang="en">
+  <!--
+    Movi Player Examples - Element Demo
+
+    CORS SETUP FOR DEVELOPMENT:
+    If you encounter CORS errors when loading remote video URLs, you'll need to enable CORS
+    in your browser during development. Install one of these extensions:
+
+    - Chrome/Edge: "CORS Unblock" or "Allow CORS: Access-Control-Allow-Origin"
+    - Firefox: "CORS Everywhere"
+    - Safari: "CORS Unblock"
+
+    ⚠️ SECURITY WARNING: Only enable CORS extensions when actively developing.
+    Disable them when browsing other sites to maintain browser security protections.
+  -->
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -406,6 +420,39 @@
         }
       }
 
+      /* Info Notice */
+      .info-notice {
+        background: rgba(0, 212, 255, 0.05);
+        border: 1px solid rgba(0, 212, 255, 0.15);
+        border-radius: 8px;
+        padding: 0.65rem 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--text-secondary);
+        font-size: 0.8rem;
+      }
+
+      .info-notice svg {
+        flex-shrink: 0;
+        opacity: 0.6;
+      }
+
+      .info-notice strong {
+        color: var(--text-primary);
+        font-weight: 500;
+      }
+
+      .info-notice a {
+        color: var(--secondary-accent);
+        text-decoration: none;
+        font-weight: 500;
+      }
+
+      .info-notice a:hover {
+        text-decoration: underline;
+      }
+
       /* Theme Toggle Button */
       .theme-toggle-btn {
         background: var(--glass-bg);
@@ -497,6 +544,34 @@
           </label>
         </div>
       </section>
+
+      <!-- CORS Notice -->
+      <div class="info-notice">
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="16" x2="12" y2="12"></line>
+          <line x1="12" y1="8" x2="12.01" y2="8"></line>
+        </svg>
+        <div>
+          <strong>Tip:</strong> For CORS errors, install
+          <a
+            href="https://chromewebstore.google.com/detail/cors-unblock/hadoojkfknbjgoppkecpgamiajljiief"
+            target="_blank"
+            rel="noopener noreferrer"
+            >CORS Unblock</a
+          >
+          or use <strong>Upload File</strong> for local testing
+        </div>
+      </div>
 
       <section class="player-stage">
         <movi-player

@@ -12,4 +12,18 @@ export default defineConfig({
       },
     },
   },
+  server: {
+    headers: {
+      // Required for SharedArrayBuffer (WebAssembly threading)
+      'Cross-Origin-Opener-Policy': 'same-origin',
+      'Cross-Origin-Embedder-Policy': 'require-corp',
+    },
+  },
+  preview: {
+    headers: {
+      // Required for SharedArrayBuffer (WebAssembly threading)
+      'Cross-Origin-Opener-Policy': 'same-origin',
+      'Cross-Origin-Embedder-Policy': 'require-corp',
+    },
+  },
 })
