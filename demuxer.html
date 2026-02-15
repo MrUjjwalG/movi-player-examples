@@ -134,6 +134,19 @@
         background: #000; /* Black background for letterboxing */
       }
 
+      .timestamp-overlay {
+        position: absolute;
+        bottom: 4px;
+        right: 4px;
+        background: rgba(0, 0, 0, 0.75);
+        color: #fff;
+        padding: 2px 6px;
+        font-size: 11px;
+        font-family: "Courier New", monospace;
+        border-radius: 2px;
+        pointer-events: none;
+      }
+
       /* Loading/Error states */
       #loadingState {
         display: none;
@@ -186,7 +199,7 @@
         <input
           type="text"
           id="urlInput"
-          value="https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
+          value="https://download.blender.org/peach/bigbuckbunny_movies/BigBuckBunny_320x180.mp4"
         />
         <label style="margin-left: 10px">or</label>
         <input
@@ -640,7 +653,7 @@
                   if (rendered) {
                     successCount++;
                     webCodecsCount++;
-                    addCanvasToGrid(renderer.getCanvas());
+                    addCanvasToGrid(renderer.getCanvas(), time);
                   }
                 } catch (e) {
                   console.warn("WebCodecs decode error:", e);
@@ -657,7 +670,7 @@
                   successCount++;
                   softwareCount++;
                   renderer.render(rgba, width, height);
-                  addCanvasToGrid(renderer.getCanvas());
+                  addCanvasToGrid(renderer.getCanvas(), time);
                   thumbBindings.clearBuffer();
                 }
               }
@@ -711,7 +724,7 @@
         }
       });
 
-      function addCanvasToGrid(sourceCanvas) {
+      function addCanvasToGrid(sourceCanvas, timestamp) {
         const item = document.createElement("div");
         item.className = "screenshot-item";
 
@@ -725,6 +738,15 @@
         ctx.drawImage(sourceCanvas, 0, 0);
 
         item.appendChild(canvas);
+
+        // Add timestamp overlay
+        if (timestamp !== undefined) {
+          const timestampEl = document.createElement("div");
+          timestampEl.className = "timestamp-overlay";
+          timestampEl.textContent = formatTimestamp(timestamp);
+          item.appendChild(timestampEl);
+        }
+
         item.style.aspectRatio = `${canvas.width} / ${canvas.height}`;
         screenshotGrid.appendChild(item);
       }
@@ -736,6 +758,19 @@
         const sec = Math.floor(s % 60);
         if (h > 0) return `${h}h ${m}m ${sec}s`;
         return `${m}m ${sec}s`;
+      }
+
+      function formatTimestamp(s) {
+        if (s < 0) s = 0;
+        const h = Math.floor(s / 3600);
+        const m = Math.floor((s % 3600) / 60);
+        const sec = Math.floor(s % 60);
+        const pad = (n) => n.toString().padStart(2, "0");
+
+        if (h > 0) {
+          return `${h}:${pad(m)}:${pad(sec)}`;
+        }
+        return `${m}:${pad(sec)}`;
       }
 
       function setBusy(busy) {
