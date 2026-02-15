@@ -1270,6 +1270,7 @@
         player.on("loadStart", () => (spinner.style.display = "block"));
         player.on("loadEnd", () => {
           spinner.style.display = "none";
+          updateCanvasSize(); // Ensure proper canvas resolution
           player.play().catch((e) => console.log("Autoplay blocked:", e));
           startAmbientLoop();
           renderQualityMenu();
@@ -1316,7 +1317,6 @@
         }
       }
 
-      // Loop for updating progress & ambient
       // Loop for updating progress & ambient
       const updateUI = () => {
         if (player && player.getState && player.getState() !== "idle") {
@@ -1470,7 +1470,9 @@
       function updateCanvasSize() {
         if (!player) return;
         const rect = wrapper.getBoundingClientRect();
-        player.resizeCanvas(rect.width, rect.height);
+        // Account for device pixel ratio (retina/high-DPI displays)
+        const dpr = window.devicePixelRatio || 1;
+        player.resizeCanvas(rect.width * dpr, rect.height * dpr);
       }
 
       window.addEventListener("resize", updateCanvasSize);
