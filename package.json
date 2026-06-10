@@ -14,7 +14,7 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "movi-player": "^0.3.0"
+    "movi-player": "^0.3.1"
   },
   "devDependencies": {
     "vite": "^7.3.1"
