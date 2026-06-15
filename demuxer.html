@@ -103,6 +103,48 @@
         color: #ff3333;
       }
 
+      /* Chapters Section */
+      .chapters-section {
+        margin: 30px auto 0;
+        max-width: 500px;
+        text-align: left;
+        background: #1a1a1a;
+        border: 1px solid #333;
+        border-radius: 6px;
+        padding: 15px;
+      }
+      .chapters-title {
+        color: #ff3333;
+        font-size: 16px;
+        font-weight: bold;
+        font-style: italic;
+        margin-bottom: 10px;
+        text-align: center;
+      }
+      .chapter-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 6px 8px;
+        border-bottom: 1px solid #2a2a2a;
+      }
+      .chapter-row:last-child {
+        border-bottom: none;
+      }
+      .chapter-row:nth-child(odd) {
+        background: #161616;
+      }
+      .chapter-time {
+        color: #888;
+        font-family: "Courier New", monospace;
+        white-space: nowrap;
+      }
+      .chapter-name {
+        color: #ddd;
+        flex: 1;
+        text-align: right;
+      }
+
       /* Screenshots Section */
       .screenshots-title {
         color: #ff3333;
@@ -250,6 +292,14 @@
           </div>
         </div>
 
+        <!-- Chapters -->
+        <div class="chapters-section" id="chaptersSection" style="display: none">
+          <div class="chapters-title">: Chapters :</div>
+          <div id="chaptersList">
+            <!-- Chapter rows inserted here -->
+          </div>
+        </div>
+
         <!-- Screenshots -->
         <div class="screenshots-title">: Screen-Shots :</div>
         <div class="screenshot-grid" id="screenshotGrid">
@@ -298,6 +348,8 @@
 
       const displayTitle = document.getElementById("displayTitle");
       const displayMeta = document.getElementById("displayMeta");
+      const chaptersSection = document.getElementById("chaptersSection");
+      const chaptersList = document.getElementById("chaptersList");
       const screenshotGrid = document.getElementById("screenshotGrid");
       const debugToggle = document.getElementById("debugToggle");
       const debugContent = document.getElementById("debugContent");
@@ -369,6 +421,8 @@
         errorState.style.display = "none";
         loadingState.style.display = "block";
         screenshotGrid.innerHTML = "";
+        chaptersList.innerHTML = "";
+        chaptersSection.style.display = "none";
         setBusy(true);
         updateStatus("Initializing...");
 
@@ -505,6 +559,22 @@
                    <div><span class="meta-label">Subtitle:</span> ${subtitleTracks.length > 0 ? subtitleTracks.map((t) => `${t.codec.toUpperCase()} (${t.language || "Und"})`).join(", ") : "None"}</div>
                    <div><span class="meta-label">Format:</span> ${format}</div>
                 `;
+
+          // --- Render Chapters ---
+          const chapters = info.chapters || [];
+          if (chapters.length > 0) {
+            chaptersList.innerHTML = chapters
+              .map((ch, i) => {
+                const name = ch.title || `Chapter ${i + 1}`;
+                return `
+                  <div class="chapter-row">
+                    <span class="chapter-time">${formatTimestamp(ch.start)}</span>
+                    <span class="chapter-name">${escapeHtml(name)}</span>
+                  </div>`;
+              })
+              .join("");
+            chaptersSection.style.display = "block";
+          }
 
           // 2. Generate Screenshots
           updateStatus("Loading thumbnail generator...");
@@ -749,6 +819,20 @@
 
         item.style.aspectRatio = `${canvas.width} / ${canvas.height}`;
         screenshotGrid.appendChild(item);
+      }
+
+      function escapeHtml(s) {
+        return String(s).replace(
+          /[&<>"']/g,
+          (c) =>
+            ({
+              "&": "&amp;",
+              "<": "&lt;",
+              ">": "&gt;",
+              '"': "&quot;",
+              "'": "&#39;",
+            })[c],
+        );
       }
 
       function formatTimeCombined(s) {
